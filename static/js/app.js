@@ -13,10 +13,16 @@ let currentApologyConfig = {
 
 // Initialize the application
 document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
+    // Show loading screen briefly for better UX
+    setTimeout(() => {
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('main-app').style.display = 'flex';
+        initializeApp();
+    }, 1000);
 });
 
 function initializeApp() {
+    console.log('Initializing ExcuseAI application...');
     setupNavigation();
     setupExcuseGenerator();
     setupApologyGenerator();
@@ -35,6 +41,8 @@ function setupNavigation() {
 }
 
 function showView(viewName) {
+    console.log('Showing view:', viewName);
+    
     // Hide all views
     const views = document.querySelectorAll('.view-content');
     views.forEach(view => view.classList.add('hidden'));
@@ -218,15 +226,20 @@ function updateApologyButtonStates() {
 }
 
 async function generateExcuse() {
+    console.log('Generating excuse with context:', currentExcuseContext);
+    
     const btn = document.getElementById('generate-excuse-btn');
     const resultContainer = document.getElementById('excuse-result');
     
     // Update context from selects
-    updateContext('audience', document.getElementById('audience-select').value);
-    updateContext('relationship', document.getElementById('relationship-select').value);
+    const audienceSelect = document.getElementById('audience-select');
+    const relationshipSelect = document.getElementById('relationship-select');
+    
+    if (audienceSelect) currentExcuseContext.audience = audienceSelect.value;
+    if (relationshipSelect) currentExcuseContext.relationship = relationshipSelect.value;
     
     // Show loading state
-    btn.innerHTML = '<div class="loading-spinner"></div><span>Generating...</span>';
+    btn.innerHTML = '<div class="loading-spinner mr-2"></div><span>Generating...</span>';
     btn.disabled = true;
     
     try {
@@ -241,6 +254,7 @@ async function generateExcuse() {
         });
         
         const data = await response.json();
+        console.log('Excuse generation response:', data);
         
         if (data.success) {
             displayExcuseResult(data.excuse);
@@ -254,11 +268,12 @@ async function generateExcuse() {
                 <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
                 <h3 class="text-lg font-medium text-red-300 mb-2">Error</h3>
                 <p class="text-red-400">Failed to generate excuse. Please try again.</p>
+                <p class="text-red-300 text-sm mt-2">${error.message}</p>
             </div>
         `;
     } finally {
         // Reset button
-        btn.innerHTML = '<i class="fas fa-magic"></i><span>Generate Excuse</span>';
+        btn.innerHTML = '<i class="fas fa-magic mr-2"></i><span>Generate Excuse</span>';
         btn.disabled = false;
     }
 }
@@ -299,7 +314,7 @@ function displayExcuseResult(excuse) {
 
             <!-- Action Buttons -->
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="copyToClipboard('${excuse.content.replace(/'/g, "\\'")}', this)" class="flex items-center justify-center space-x-2 p-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors">
+                <button onclick="copyToClipboard(\`${excuse.content.replace(/`/g, '\\`')}\`, this)" class="btn-secondary flex items-center justify-center space-x-2 p-3 text-slate-300 rounded-lg">
                     <i class="fas fa-copy"></i>
                     <span>Copy</span>
                 </button>
@@ -313,11 +328,13 @@ function displayExcuseResult(excuse) {
 }
 
 async function generateApology() {
+    console.log('Generating apology with config:', currentApologyConfig);
+    
     const btn = document.getElementById('generate-apology-btn');
     const resultContainer = document.getElementById('apology-result');
     
     // Show loading state
-    btn.innerHTML = '<div class="loading-spinner"></div><span>Generating...</span>';
+    btn.innerHTML = '<div class="loading-spinner mr-2"></div><span>Generating...</span>';
     btn.disabled = true;
     
     try {
@@ -332,6 +349,7 @@ async function generateApology() {
         });
         
         const data = await response.json();
+        console.log('Apology generation response:', data);
         
         if (data.success) {
             displayApologyResult(data.apology);
@@ -345,11 +363,12 @@ async function generateApology() {
                 <i class="fas fa-exclamation-triangle text-6xl text-red-500 mb-4"></i>
                 <h3 class="text-lg font-medium text-red-300 mb-2">Error</h3>
                 <p class="text-red-400">Failed to generate apology. Please try again.</p>
+                <p class="text-red-300 text-sm mt-2">${error.message}</p>
             </div>
         `;
     } finally {
         // Reset button
-        btn.innerHTML = '<i class="fas fa-heart"></i><span>Generate Apology</span>';
+        btn.innerHTML = '<i class="fas fa-heart mr-2"></i><span>Generate Apology</span>';
         btn.disabled = false;
     }
 }
@@ -384,7 +403,7 @@ function displayApologyResult(apology) {
 
             <!-- Action Buttons -->
             <div class="grid grid-cols-2 gap-3">
-                <button onclick="copyToClipboard('${apology.content.replace(/'/g, "\\'")}', this)" class="flex items-center justify-center space-x-2 p-3 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors">
+                <button onclick="copyToClipboard(\`${apology.content.replace(/`/g, '\\`')}\`, this)" class="btn-secondary flex items-center justify-center space-x-2 p-3 text-slate-300 rounded-lg">
                     <i class="fas fa-copy"></i>
                     <span>Copy</span>
                 </button>
@@ -403,7 +422,7 @@ async function createEmergencyAlert() {
     const content = document.getElementById('alert-content').value;
     
     if (!sender || !content) {
-        alert('Please fill in all required fields');
+        showNotification('Please fill in all required fields', 'error');
         return;
     }
     
@@ -423,7 +442,7 @@ async function createEmergencyAlert() {
         const data = await response.json();
         
         if (data.success) {
-            alert('Emergency alert created successfully!');
+            showNotification('Emergency alert created successfully!', 'success');
             // Clear form
             document.getElementById('alert-sender').value = '';
             document.getElementById('alert-content').value = '';
@@ -432,11 +451,13 @@ async function createEmergencyAlert() {
         }
     } catch (error) {
         console.error('Error creating alert:', error);
-        alert('Failed to create emergency alert. Please try again.');
+        showNotification('Failed to create emergency alert. Please try again.', 'error');
     }
 }
 
 async function loadDashboard() {
+    console.log('Loading dashboard...');
+    
     try {
         // Load stats
         const statsResponse = await fetch('/api/stats');
@@ -455,6 +476,7 @@ async function loadDashboard() {
         }
     } catch (error) {
         console.error('Error loading dashboard:', error);
+        showNotification('Failed to load dashboard data', 'error');
     }
 }
 
@@ -494,7 +516,7 @@ function displayStats(stats) {
     ];
     
     statsGrid.innerHTML = statItems.map(stat => `
-        <div class="glass-effect rounded-xl p-6 hover:bg-slate-800/70 transition-all duration-200">
+        <div class="card p-6">
             <div class="flex items-center justify-between mb-4">
                 <div class="w-12 h-12 bg-gradient-to-r ${stat.color} rounded-lg flex items-center justify-center">
                     <i class="${stat.icon} text-white"></i>
@@ -530,7 +552,7 @@ function displayRecentExcuses(excuses) {
                 const scoreColor = excuse.believabilityScore >= 80 ? 'emerald' : 
                                   excuse.believabilityScore >= 60 ? 'yellow' : 'red';
                 return `
-                    <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+                    <div class="bg-slate-700/50 rounded-lg p-4 border border-slate-600 hover:bg-slate-700/70 transition-colors">
                         <div class="flex items-center justify-between mb-2">
                             <h3 class="font-medium text-white">${excuse.title}</h3>
                             <div class="flex items-center space-x-2">
@@ -555,6 +577,8 @@ function displayRecentExcuses(excuses) {
 }
 
 async function loadSavedExcuses() {
+    console.log('Loading saved excuses...');
+    
     try {
         const response = await fetch('/api/saved-excuses');
         const data = await response.json();
@@ -564,6 +588,7 @@ async function loadSavedExcuses() {
         }
     } catch (error) {
         console.error('Error loading saved excuses:', error);
+        showNotification('Failed to load saved excuses', 'error');
     }
 }
 
@@ -577,7 +602,7 @@ function displaySavedExcuses(excuses) {
                 <i class="fas fa-bookmark text-6xl text-slate-500 mb-4"></i>
                 <h3 class="text-lg font-medium text-slate-300 mb-2">No Saved Excuses</h3>
                 <p class="text-slate-400 mb-6">Start generating and saving excuses to build your collection</p>
-                <button onclick="showView('generator')" class="px-6 py-3 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-200">
+                <button onclick="showView('generator')" class="btn-primary px-6 py-3 text-white rounded-lg font-medium">
                     Generate Your First Excuse
                 </button>
             </div>
@@ -586,12 +611,12 @@ function displaySavedExcuses(excuses) {
     }
     
     container.innerHTML = `
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 grid-responsive">
             ${excuses.map(excuse => {
                 const scoreColor = excuse.believabilityScore >= 80 ? 'emerald' : 
                                   excuse.believabilityScore >= 60 ? 'yellow' : 'red';
                 return `
-                    <div class="glass-effect rounded-xl p-6 hover:bg-slate-800/70 transition-all duration-200">
+                    <div class="card p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div class="flex-1">
                                 <h3 class="font-semibold text-white mb-1">${excuse.title}</h3>
@@ -610,9 +635,9 @@ function displaySavedExcuses(excuses) {
                                 <span class="font-medium text-white">${excuse.believabilityScore}%</span>
                             </div>
                         </div>
-                        <p class="text-slate-300 text-sm leading-relaxed mb-4">${excuse.content}</p>
+                        <p class="text-slate-300 text-sm leading-relaxed mb-4 line-clamp-3">${excuse.content}</p>
                         <div class="flex items-center space-x-2">
-                            <button onclick="copyToClipboard('${excuse.content.replace(/'/g, "\\'")}', this)" class="flex items-center space-x-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg transition-colors text-sm">
+                            <button onclick="copyToClipboard(\`${excuse.content.replace(/`/g, '\\`')}\`, this)" class="btn-secondary flex items-center space-x-1 px-3 py-2 text-slate-300 rounded-lg text-sm">
                                 <i class="fas fa-copy text-xs"></i>
                                 <span>Copy</span>
                             </button>
@@ -643,7 +668,7 @@ async function saveExcuse(excuseId) {
                 
                 const saveData = await saveResponse.json();
                 if (saveData.success) {
-                    alert('Excuse saved successfully!');
+                    showNotification('Excuse saved successfully!', 'success');
                 } else {
                     throw new Error(saveData.error);
                 }
@@ -651,7 +676,7 @@ async function saveExcuse(excuseId) {
         }
     } catch (error) {
         console.error('Error saving excuse:', error);
-        alert('Failed to save excuse. Please try again.');
+        showNotification('Failed to save excuse. Please try again.', 'error');
     }
 }
 
@@ -659,12 +684,44 @@ async function copyToClipboard(text, button) {
     try {
         await navigator.clipboard.writeText(text);
         const originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
+        button.innerHTML = '<i class="fas fa-check mr-1"></i><span>Copied!</span>';
+        button.classList.add('bg-emerald-600', 'text-white');
         setTimeout(() => {
             button.innerHTML = originalText;
+            button.classList.remove('bg-emerald-600', 'text-white');
         }, 2000);
     } catch (error) {
         console.error('Failed to copy text:', error);
-        alert('Failed to copy to clipboard');
+        showNotification('Failed to copy to clipboard', 'error');
     }
 }
+
+function showNotification(message, type = 'info') {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 transition-all duration-300 ${
+        type === 'success' ? 'bg-emerald-600' : 
+        type === 'error' ? 'bg-red-600' : 'bg-blue-600'
+    } text-white`;
+    
+    notification.innerHTML = `
+        <div class="flex items-center space-x-2">
+            <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'exclamation-triangle' : 'info'}-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Remove notification after 3 seconds
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            document.body.removeChild(notification);
+        }, 300);
+    }, 3000);
+}
+
+// Add some console logging for debugging
+console.log('ExcuseAI JavaScript loaded successfully');
