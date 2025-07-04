@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Powered Excuse Generator System</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e293b 0%, #1e40af 50%, #1e293b 100%);
+        }
+        .glass-effect {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(71, 85, 105, 0.3);
+        }
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .hidden { display: none; }
+        .active-nav {
+            background: linear-gradient(to right, #2563eb, #10b981);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <div class="flex h-screen">
+        <!-- Navigation Sidebar -->
+        <nav class="glass-effect w-64 h-full p-6">
+            <div class="flex items-center space-x-3 mb-8">
+                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-comment-dots text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold text-white">ExcuseAI</h1>
+                    <p class="text-sm text-slate-400">Smart Excuse System</p>
+                </div>
+            </div>
+            
+            <ul class="space-y-2">
+                <li>
+                    <button onclick="showView('dashboard')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-slate-300 hover:bg-slate-700/50 hover:text-white" data-view="dashboard">
+                        <i class="fas fa-tachometer-alt w-5 h-5"></i>
+                        <span class="font-medium">Dashboard</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showView('generator')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-slate-300 hover:bg-slate-700/50 hover:text-white" data-view="generator">
+                        <i class="fas fa-magic w-5 h-5"></i>
+                        <span class="font-medium">Generate</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showView('apology')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-slate-300 hover:bg-slate-700/50 hover:text-white" data-view="apology">
+                        <i class="fas fa-heart w-5 h-5"></i>
+                        <span class="font-medium">Apology</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showView('emergency')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-slate-300 hover:bg-slate-700/50 hover:text-white" data-view="emergency">
+                        <i class="fas fa-exclamation-triangle w-5 h-5"></i>
+                        <span class="font-medium">Emergency</span>
+                    </button>
+                </li>
+                <li>
+                    <button onclick="showView('saved')" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 text-slate-300 hover:bg-slate-700/50 hover:text-white" data-view="saved">
+                        <i class="fas fa-bookmark w-5 h-5"></i>
+                        <span class="font-medium">Saved</span>
+                    </button>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-auto">
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view-content p-8">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-2">Welcome back</h1>
+                    <p class="text-slate-400">Here's what's happening with your excuse system today.</p>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" id="stats-grid">
+                    <!-- Stats will be loaded here -->
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Recent Excuses -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-semibold text-white">Recent Excuses</h2>
+                            <button onclick="showView('generator')" class="px-4 py-2 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-200">
+                                Generate New
+                            </button>
+                        </div>
+                        <div id="recent-excuses">
+                            <!-- Recent excuses will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h2 class="text-xl font-semibold text-white mb-6">Quick Actions</h2>
+                        <div class="space-y-3">
+                            <button onclick="showView('generator')" class="w-full flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-600/20 to-emerald-600/20 border border-blue-500/30 rounded-lg hover:from-blue-600/30 hover:to-emerald-600/30 transition-all duration-200 text-left">
+                                <i class="fas fa-magic text-blue-400"></i>
+                                <div>
+                                    <h3 class="font-medium text-white">Generate Excuse</h3>
+                                    <p class="text-sm text-slate-400">Create a context-aware excuse</p>
+                                </div>
+                            </button>
+                            <button onclick="showView('apology')" class="w-full flex items-center space-x-3 p-4 bg-gradient-to-r from-pink-600/20 to-rose-600/20 border border-pink-500/30 rounded-lg hover:from-pink-600/30 hover:to-rose-600/30 transition-all duration-200 text-left">
+                                <i class="fas fa-heart text-pink-400"></i>
+                                <div>
+                                    <h3 class="font-medium text-white">Generate Apology</h3>
+                                    <p class="text-sm text-slate-400">Create heartfelt apologies</p>
+                                </div>
+                            </button>
+                            <button onclick="showView('emergency')" class="w-full flex items-center space-x-3 p-4 bg-gradient-to-r from-orange-600/20 to-red-600/20 border border-orange-500/30 rounded-lg hover:from-orange-600/30 hover:to-red-600/30 transition-all duration-200 text-left">
+                                <i class="fas fa-exclamation-triangle text-orange-400"></i>
+                                <div>
+                                    <h3 class="font-medium text-white">Emergency Alert</h3>
+                                    <p class="text-sm text-slate-400">Set up automated alerts</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Excuse Generator View -->
+            <div id="generator-view" class="view-content p-8 hidden">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-2">Excuse Generator</h1>
+                    <p class="text-slate-400">Create context-aware, believable excuses with AI assistance</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Configuration Panel -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h2 class="text-xl font-semibold text-white mb-6">Configure Context</h2>
+                        
+                        <div class="space-y-6">
+                            <!-- Situation -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-3">Situation</label>
+                                <div class="grid grid-cols-2 gap-2" id="situation-buttons">
+                                    <!-- Situation buttons will be generated here -->
+                                </div>
+                            </div>
+
+                            <!-- Urgency -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-3">Urgency Level</label>
+                                <div class="grid grid-cols-2 gap-2" id="urgency-buttons">
+                                    <!-- Urgency buttons will be generated here -->
+                                </div>
+                            </div>
+
+                            <!-- Audience -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-3">Audience</label>
+                                <select id="audience-select" class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                    <option value="family">Family</option>
+                                    <option value="work">Work/Professional</option>
+                                    <option value="friends">Friends</option>
+                                    <option value="romantic">Romantic Partner</option>
+                                    <option value="authority">Authority Figure</option>
+                                </select>
+                            </div>
+
+                            <!-- Relationship -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-3">Relationship</label>
+                                <select id="relationship-select" class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                                    <option value="close">Close</option>
+                                    <option value="professional">Professional</option>
+                                    <option value="casual">Casual</option>
+                                    <option value="distant">Distant</option>
+                                </select>
+                            </div>
+
+                            <!-- Generate Button -->
+                            <button id="generate-excuse-btn" onclick="generateExcuse()" class="w-full flex items-center justify-center space-x-2 p-4 bg-gradient-to-r from-blue-600 to-emerald-600 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-200">
+                                <i class="fas fa-magic"></i>
+                                <span>Generate Excuse</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Panel -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h2 class="text-xl font-semibold text-white mb-6">Generated Excuse</h2>
+                        <div id="excuse-result">
+                            <div class="text-center py-12">
+                                <i class="fas fa-magic text-6xl text-slate-500 mb-4"></i>
+                                <h3 class="text-lg font-medium text-slate-300 mb-2">Ready to Generate</h3>
+                                <p class="text-slate-400">Configure your context and click generate to create your excuse</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Apology Generator View -->
+            <div id="apology-view" class="view-content p-8 hidden">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-2">Apology Generator</h1>
+                    <p class="text-slate-400">Generate heartfelt apologies to follow up on your excuses</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Configuration Panel -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h2 class="text-xl font-semibold text-white mb-6">Apology Configuration</h2>
+                        
+                        <div class="space-y-6">
+                            <!-- Tone Selection -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-3">Tone</label>
+                                <div class="grid grid-cols-2 gap-2" id="tone-buttons">
+                                    <!-- Tone buttons will be generated here -->
+                                </div>
+                            </div>
+
+                            <!-- Length Selection -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-300 mb-3">Length</label>
+                                <div class="grid grid-cols-3 gap-2" id="length-buttons">
+                                    <!-- Length buttons will be generated here -->
+                                </div>
+                            </div>
+
+                            <!-- Generate Button -->
+                            <button id="generate-apology-btn" onclick="generateApology()" class="w-full flex items-center justify-center space-x-2 p-4 bg-gradient-to-r from-pink-600 to-rose-600 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-200">
+                                <i class="fas fa-heart"></i>
+                                <span>Generate Apology</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Result Panel -->
+                    <div class="glass-effect rounded-xl p-6">
+                        <h2 class="text-xl font-semibold text-white mb-6">Generated Apology</h2>
+                        <div id="apology-result">
+                            <div class="text-center py-12">
+                                <i class="fas fa-heart text-6xl text-slate-500 mb-4"></i>
+                                <h3 class="text-lg font-medium text-slate-300 mb-2">Ready to Generate</h3>
+                                <p class="text-slate-400">Configure your apology style and click generate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Emergency Alerts View -->
+            <div id="emergency-view" class="view-content p-8 hidden">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-2">Emergency Alerts</h1>
+                    <p class="text-slate-400">Set up automated emergency calls, texts, and emails to support your excuses</p>
+                </div>
+
+                <div class="glass-effect rounded-xl p-6">
+                    <h2 class="text-xl font-semibold text-white mb-6">Create Emergency Alert</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Alert Type</label>
+                            <select id="alert-type" class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:border-red-500 focus:ring-1 focus:ring-red-500">
+                                <option value="call">Phone Call</option>
+                                <option value="text">Text Message</option>
+                                <option value="email">Email</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Sender/Contact</label>
+                            <input type="text" id="alert-sender" placeholder="e.g., Dr. Smith, Mom, Boss" class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-slate-300 mb-2">Message Content</label>
+                            <textarea id="alert-content" placeholder="Emergency message content..." class="w-full p-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none" rows="3"></textarea>
+                        </div>
+
+                        <button onclick="createEmergencyAlert()" class="w-full px-4 py-3 bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-lg font-medium hover:shadow-lg transition-all duration-200">
+                            Create Alert
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Warning -->
+                <div class="mt-8 p-4 bg-orange-600/20 border border-orange-500/50 rounded-lg">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-exclamation-triangle text-orange-400 mt-0.5"></i>
+                        <div>
+                            <h3 class="font-medium text-orange-300 mb-1">Important Notice</h3>
+                            <p class="text-orange-200 text-sm">
+                                Emergency alerts are simulated for demonstration purposes only. Do not use this feature for actual emergencies 
+                                or to deceive others in harmful ways. Use responsibly and ethically.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Saved Excuses View -->
+            <div id="saved-view" class="view-content p-8 hidden">
+                <div class="mb-8">
+                    <h1 class="text-3xl font-bold text-white mb-2">Saved Excuses</h1>
+                    <p class="text-slate-400">Manage and organize your collection of generated excuses</p>
+                </div>
+
+                <div id="saved-excuses-content">
+                    <!-- Saved excuses will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
