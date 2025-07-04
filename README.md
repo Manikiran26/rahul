@@ -16,7 +16,7 @@ A Python Flask web application that generates context-aware, believable excuses 
 
 2. **Install Python dependencies**:
    ```bash
-   pip install -r requirements.txt
+   python -m pip install -r requirements.txt
    ```
 
 3. **Run the application**:
@@ -89,7 +89,7 @@ To run this project in VS Code:
    - Choose your Python installation
 4. **Install dependencies** in the integrated terminal:
    ```bash
-   pip install -r requirements.txt
+   python -m pip install -r requirements.txt
    ```
 5. **Run the application**:
    - Press `F5` to run with debugger, or
@@ -108,7 +108,7 @@ To run this project in VS Code:
 ### Common Issues:
 
 1. **Port already in use**: Change the port in `app.py` or `run.py`
-2. **Module not found**: Make sure all dependencies are installed with `pip install -r requirements.txt`
+2. **Module not found**: Make sure all dependencies are installed with `python -m pip install -r requirements.txt`
 3. **Permission errors**: Run with appropriate permissions or use a virtual environment
 
 ### Virtual Environment (Recommended):
@@ -124,7 +124,7 @@ excuse_env\Scripts\activate
 source excuse_env/bin/activate
 
 # Install dependencies
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 # Run the application
 python run.py
